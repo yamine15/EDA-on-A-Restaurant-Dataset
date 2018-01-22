@@ -171,7 +171,7 @@ for i in range(0, len(tss.columns)):
     ax1 = fig.add_subplot(111)
     tss[tss.columns[i]].plot(kind = 'bar', grid = True,figsize=(20, 10), color = 'g')
     ax1.set_xticks(np.arange(len(tss)))
-    plt.xlabel('Month')
+    plt.xlabel('Season')
     plt.ylabel(tss.columns[i])
     fig.savefig('~/PerSeason/' + tss.columns[i].replace(" ", "") + 'PerSeason' + '.png')
 
@@ -197,7 +197,7 @@ for i in range(0, len(tsw.columns)):
     fig = plt.figure()
     tsw[tsw.columns[i]].plot(kind = 'line', grid = True,figsize=(20, 10), color = 'g')
     ax1.set_xticks(np.arange(len(tsw)))
-    plt.xlabel('Hour')
+    plt.xlabel('Weekday')
     plt.ylabel(tsw.columns[i])
     fig.savefig('~/PerWeekday/' + tsw.columns[i].replace(" ", "") + 'PerWeekday' + '.png')
 
