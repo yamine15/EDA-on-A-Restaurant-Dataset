@@ -48,6 +48,7 @@ df2 = df.loc[:, 'No.Customers':'Drink.revenue.in.EUR'].copy()
 #copy of avarageTotal data without first two columns
 df3 = df1.loc[:, 'No.Customers':'Drink.revenue.in.EUR'].copy()
 
+#Average the variables contain total amounts, 
 df1['Tips.in.EUR'] = df1['Tips.in.EUR']/df1['No.Customers']
 df1['No.times.door.opened'] = df1['No.times.door.opened']/df1['No.Customers']
 df1['No.meals'] = df1['No.meals']/df1['No.Customers']
@@ -74,7 +75,7 @@ LowerLimit = Q1 - 1.5* IQR
 for i in range(3, len(df1.columns)+1):
     fig = plt.figure()
     df1.boxplot(column=df1.columns[i])
-    fig.savefig('~/Boxplot-' + df1.columns[i].replace(" ", "") + '.png')
+    fig.savefig('~/Boxplot/Boxplot-' + df1.columns[i].replace(" ", "") + '.png')
 
 #Find the unusual outliers by checking every box plot and store the indexes
 outlierIndex = df1[(df1['No.drinks'] > 100) | (df1['No.meals'] > 20) |(df1['Total.revenue.in.EUR'] > 2000) | ((df1['Meal.revenue.in.EUR'] + df1['Drink.revenue.in.EUR']) < 0.97) |
@@ -96,7 +97,7 @@ for i in range(0, len(df2.columns)+1):
         plt.scatter(df2[df2.columns[j]][df2[df2.columns[i]] > UpperLimit[i]], df2[df2.columns[i]][df2[df2.columns[i]]> UpperLimit[i]],alpha = 0.3,color = 'blue')
         plt.xlabel(df2.columns[j])
         plt.ylabel(df2.columns[i])
-        fig.savefig('~' + df2.columns[j].replace(" ", "") + df2.columns[i].replace(" ", "") + '.png')
+        fig.savefig('~/' + df2.columns[j].replace(" ", "") + df2.columns[i].replace(" ", "") + '.png')
 
 #Use Scatter plot to check pairs of variables and mark outliers for df3
 df3 = df1.loc[:, 'No.Customers':'Drink.revenue.in.EUR'].copy()
@@ -113,13 +114,13 @@ for i in range(0, len(df3.columns)+1):
         
         plt.xlabel(df3.columns[j])
         plt.ylabel(df3.columns[i])
-        fig.savefig('~/' + df3.columns[j].replace(" ", "") + df3.columns[i].replace(" ", "") + '.png')
+        fig.savefig('~~/' + df3.columns[j].replace(" ", "") + df3.columns[i].replace(" ", "") + '.png')
 
 #Get scaled data and check every column to get index, Final check of outliers
 df3_scaled = preprocessing.StandardScaler().fit_transform(df3)
 #One example to get index. 
 
-((df3_scaled[:, 2] > 3.5) | (df3_scaled[:, 2] < -3.5)).tolist().index(True)
+((df3_scaled[:, 6] > 3.5) | (df3_scaled[:, 6] < -3.5)).tolist().index(True)
 
 #Convert to dataframe for later use: PCA
 df3_scaled = pd.DataFrame(df3_scaled, columns=df3.columns)
@@ -132,25 +133,25 @@ df1 = df1.reset_index(drop=True)
 df2 = df2.reset_index(drop=True)
 df3 = df3.reset_index(drop=True)
 
-df.to_csv('~/data.csv', index = False)
-df0.to_csv('~/data_averageTotal.csv', index = False)
+df.to_csv('~~/data.csv', index = False)
+df0.to_csv('~~/data_averageTotal.csv', index = False)
 
 
 ################################Data Cleaning Finished#########################
 
 
 ####################################Start Analysis#############################
-
+#The normal distribution part is checked in R, please refer to the corresponding part.
 
 #Perform the Pearson correlation test and generate heatmap
 f,ax = plt.subplots(figsize=(18, 18))
 sns.heatmap(df.corr(method = 'pearson'), annot=True, linewidths=.5, fmt= '.3f',ax=ax)
 
 #Perform the Spearman correlation test and generate heatmap
-rho1, pval1 = spearmanr(df2)
+rho1, pval1 = spearmanr(df3)
 pval1Truth = pval1 < 0.001
-pval1Truth = pd.DataFrame(pval1Truth, index=df2.columns, columns=df2.columns)
-spearCorMatrix = pd.DataFrame(rho1, index=df2.columns, columns=df2.columns)
+pval1Truth = pd.DataFrame(pval1Truth, index=df3.columns, columns=df3.columns)
+spearCorMatrix = pd.DataFrame(rho1, index=df3.columns, columns=df3.columns)
 spearCorMatrix = spearCorMatrix[pval1Truth]
 
 f,ax = plt.subplots(figsize=(18, 18))
@@ -159,7 +160,7 @@ sns.heatmap(spearCorMatrix, annot=True, linewidths=.5, fmt= '.3f',ax=ax)
 
 
 ##############################Time Series Analysis#############################
-#Start some , aggregate by month, weekday, etc, and plot them.
+#Aggregate by month, weekday, etc, and plot them.
 
 
 #Create a dataframe aggregating by seasons.
@@ -173,7 +174,7 @@ for i in range(0, len(tss.columns)):
     ax1.set_xticks(np.arange(len(tss)))
     plt.xlabel('Season')
     plt.ylabel(tss.columns[i])
-    fig.savefig('~/PerSeason/' + tss.columns[i].replace(" ", "") + 'PerSeason' + '.png')
+    fig.savefig('~/' + tss.columns[i].replace(" ", "") + 'PerSeason' + '.png')
 
 
 #Create a dataframe aggregating by months.
@@ -183,7 +184,7 @@ tsm = ts.groupby(ts.index.month).mean()
 for i in range(0, len(tsm.columns)):
     fig = plt.figure()
     ax1 = fig.add_subplot(111)
-    tsm[tsm.columns[i]].plot(kind = 'line', grid = True,figsize=(20, 10), color = 'g')
+    tsm[tsm.columns[i]].plot(kind = 'line', grid = True,figsize=(20, 10), color = 'r')
     ax1.set_xticks(np.arange(len(tsm)))
     plt.xlabel('Month')
     plt.ylabel(tsm.columns[i])
@@ -195,7 +196,7 @@ tsw = tsw.reindex(["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Satu
 #Create time series plots aggregated by weekdays.
 for i in range(0, len(tsw.columns)):
     fig = plt.figure()
-    tsw[tsw.columns[i]].plot(kind = 'line', grid = True,figsize=(20, 10), color = 'g')
+    tsw[tsw.columns[i]].plot(kind = 'line', grid = True,figsize=(20, 10), color = 'orange')
     ax1.set_xticks(np.arange(len(tsw)))
     plt.xlabel('Weekday')
     plt.ylabel(tsw.columns[i])
@@ -206,7 +207,7 @@ tsh = ts.groupby(ts.index.hour).mean()
 #Create time series plots aggregated by hours.
 for i in range(0, len(tsh.columns)):
     fig = plt.figure()
-    tsh[tsh.columns[i]].plot(kind = 'line', grid = True,figsize=(20, 10), color = 'g')
+    tsh[tsh.columns[i]].plot(kind = 'line', grid = True,figsize=(20, 10), color = 'red')
     ax1.set_xticks(np.arange(len(tsh)))
     plt.xlabel('Hour')
     plt.ylabel(tsh.columns[i])
@@ -216,13 +217,62 @@ for i in range(0, len(tsh.columns)):
 ############################Time Series Analysis Finished######################
 
 ############################Start PCA for Clustering###########################
+#Recoding the time related category variables to numerical and put them into PCA
+def weekday_recode(weekday):
+    if weekday == 'Monday':
+        return 1
+    elif weekday == 'Tuesday':
+        return 2
+    elif weekday == 'Wednesday':
+        return 3
+    elif weekday == 'Thursday':
+        return 4
+    elif weekday == 'Friday':
+        return 5
+    elif weekday == 'Saturday':
+        return 6
+    else:
+        return 7
+
+def season_recode(season):
+    if season == 'Winter':
+        return 1
+    elif season == 'Spring':
+        return 2
+    elif season == 'Summer':
+        return 3
+    else:
+        return 4
+        
+
+df2.insert(loc=0, column='Weekday', value=df['Weekday'].apply(weekday_recode))
+df2.insert(loc=1, column='Season', value=df['Season'].apply(season_recode))
+
+df2_scaled = preprocessing.StandardScaler().fit_transform(df2)
+df2_scaled = pd.DataFrame(df2_scaled, columns=df2.columns)
+
+#We decided to put df2, which hasn't been averaged, into PCA. Since it preserves more variance of the original dataset. 3 PCs explained almost 85% of the variance. The average dataset have to be converted to 4 PCs to achieve the same 85% level.
+#Check the accumulated explained_variance_ratio
+explained_variance_ratio = []
+for i in range(1, 11):
+    pca = PCA(n_components=i)
+    principalComponents = pca.fit_transform(df3_scaled)
+    explained_variance_ratio.append(pca.explained_variance_ratio_.sum())
+#Plot the accumulated explained_variance_ratio
+fig.canvas.draw()
+fig, ax = plt.subplots()
+ax.set_xticklabels([0, 1, 3, 5, 7, 9])
+plt.plot(explained_variance_ratio)
+plt.title('Explained Variance Ratio')
+plt.xlabel('# of PC')
+#The PCs are set to be 3 for visualization
 pca = PCA(n_components=3)
 principalComponents = pca.fit_transform(df3_scaled)
 principalDf = pd.DataFrame(data = principalComponents
              , columns = ['pc1', 'pc2', 'pc3'])
 pca.explained_variance_ratio_.sum()
-fig = plt.figure()
-plt.plot(pca.explained_variance_ratio_)
+
+
 ###################################PCA End#####################################
 
 ###############################Start Clustering################################
@@ -234,23 +284,65 @@ for i in range(1, 11):
     kmeans.inertia_
     SSE.append(kmeans.inertia_)
 
-#Based on the graph, 4 is the probably the best choice for k
+#Based on the graph, 3 is the probably the best choice for k
+fig.canvas.draw()
+fig, ax = plt.subplots()
+ax.set_xticklabels([0, 1, 3, 5, 7, 9])
 plt.plot(SSE)
+plt.title('SSE & Number of Cluster')
+plt.xlabel('# of Cluster')
+plt.ylabel('SSE') 
 
-kmeans = KMeans(n_clusters=4)
-kmeans.fit(df3_scaled)
+kmeans = KMeans(n_clusters=3)
+kmeans.fit(df2_scaled)
 centroids = kmeans.cluster_centers_
 labels = kmeans.labels_
 
+#Insert the labels to the original dataset. 
+df3.insert(loc=16, column='label', value=labels)
 df2.insert(loc=16, column='label', value=labels)
 
-colors = ["g.","r.","y.","b."]
+#A visualiszatoin of clustering result on pc1 and pc2
+colors = ["g.","r.","y."]
 for i in range(len(principalComponents)):
     plt.plot(principalComponents[i][0], principalComponents[i][1],  colors[labels[i]], markersize = 2)
-#Group data by labels.
-gbl = df2.groupby('label').mean()
+plt.title('Clustering Result On PC')
+plt.xlabel('PC1')
+plt.ylabel('PC2')
+
+#Group data by labels to see some 
+gbl = df3.groupby('label').mean()
 
 ###############################Clustering Finished#############################
+###############################Analysis Finished###############################
+
+#####################Customized Plots for Presentation#########################
+tsh_for_plot = tsh.loc[:,['No.Customers','Electricity.consumption.in.kwh','Gas.consumption.in.kwh']]
+tsh_for_plot.plot(subplots = True)
+plt.xlabel('hour')
+
+tsh_for_plot1 = tsh.loc[:,['No.Customers','Average.age.of.customers', 'Tips.in.EUR']]
+tsh_for_plot1.plot(subplots = True)
+plt.xlabel('hour')
+
+tsm_for_plot = tsm.loc[:,['Outside.temperatur.in.Celsius','Restaurant.temperature.in.Celsius', 'Electricity.consumption.in.kwh', 'Water.comsumption.in.liter']]
+tsm_for_plot.plot(subplots = True)
+plt.xlabel('Month')
 
 
-############################Some Interesting Findings##########################
+tss_for_plot = tss.loc[:,['No.Customers','No.times.door.opened']]
+tss_for_plot.plot(kind = 'bar', subplots = True)
+plt.xlabel('Season')
+
+
+
+clustername = ['1', '2', '3']
+colors = ["r.","g.","b."]
+
+fig = plt.figure()
+ax = fig.add_subplot(1,1,1) 
+for i in range(len(df3)):
+    plt.plot(df3.values[i][0], df3.values[i][12],  colors[labels[i]], markersize = 5)
+plt.xlabel(df3.columns[0])
+plt.ylabel(df3.columns[12])
+ax.grid()
